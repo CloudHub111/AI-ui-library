@@ -285,76 +285,71 @@ function Library:MakeWindow(WindowData)
 			return selfObj
 		end
 
-function Tab:MakeDropdown(Data)
-  local List = Data.Options or {}
-  local Dropdown = MakeBase()
-  local Btn = Instance.new("TextButton", Dropdown)
-  Btn.Size = UDim2.new(1, 0, 1, 0)
-  Btn.BackgroundTransparency = 1
-  Btn.Text = Data.Title or "Dropdown"
-  Btn.TextColor3 = Color3.new(1, 1, 1)
-  Btn.TextScaled = true
-  Btn.Font = Enum.Font.SourceSans
+		function Tab:MakeDropdown(Data)
+			local List = Data.Options or {}
+			local Dropdown = MakeBase()
+			local Btn = Instance.new("TextButton", Dropdown)
+			Btn.Size = UDim2.new(1, 0, 1, 0)
+			Btn.BackgroundTransparency = 1
+			Btn.Text = Data.Title or "Dropdown"
+			Btn.TextColor3 = Color3.new(1, 1, 1)
+			Btn.TextScaled = true
+			Btn.Font = Enum.Font.SourceSans
 
-  local Opened = false
-  local OptionFrames = {}
+			local Opened = false
+			local OptionFrames = {}
 
-  local callback = Data.Callback
+			local callback = Data.Callback
 
-  local function ClearOptions()
-    for _, f in pairs(OptionFrames) do f:Destroy() end
-    OptionFrames = {}
-    Dropdown.Size = UDim2.new(1, -10, 0, 40)
-  end
+			local function ClearOptions()
+				for _, f in pairs(OptionFrames) do f:Destroy() end
+				OptionFrames = {}
+			end
 
-  local function CreateOptions()
-    for i, opt in ipairs(List) do
-      local Opt = Instance.new("TextButton")
-      Opt.Size = UDim2.new(1, -20, 0, 35)
-      Opt.Position = UDim2.new(0, 10, 0, 40 + (i - 1) * 37)
-      Opt.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-      Opt.Text = opt
-      Opt.TextScaled = true
-      Opt.Font = Enum.Font.SourceSans
-      Opt.TextColor3 = Color3.new(1, 1, 1)
-      Opt.AutoButtonColor = true
-      Opt.Parent = Dropdown
-      Instance.new("UICorner", Opt).CornerRadius = UDim.new(0, 4)
-      Opt.MouseButton1Click:Connect(function()
-        Btn.Text = opt
-        ClearOptions()
-        Opened = false
-        pcall(callback, opt)
-      end)
-      table.insert(OptionFrames, Opt)
-    end
-    Dropdown.Size = UDim2.new(1, -10, 0, 40 + #OptionFrames * 37)
-  end
+			local function CreateOptions()
+				for _, opt in ipairs(List) do
+					local Opt = MakeBase()
+					Opt.Size = UDim2.new(1, -10, 0, 35)
+					local BtnOpt = Instance.new("TextButton", Opt)
+					BtnOpt.Size = UDim2.new(0.9, 0, 1, 0)
+					BtnOpt.Text = opt
+					BtnOpt.TextScaled = true
+					BtnOpt.Font = Enum.Font.SourceSans
+					BtnOpt.BackgroundTransparency = 1
+					BtnOpt.TextColor3 = Color3.new(1, 1, 1)
+					BtnOpt.MouseButton1Click:Connect(function()
+						Btn.Text = opt
+						ClearOptions()
+						Opened = false
+						pcall(callback, opt)
+					end)
+					table.insert(OptionFrames, Opt)
+				end
+			end
 
-  Btn.MouseButton1Click:Connect(function()
-    if Opened then
-      ClearOptions()
-    else
-      CreateOptions()
-    end
-    Opened = not Opened
-  end)
+			Btn.MouseButton1Click:Connect(function()
+				if Opened then
+					ClearOptions()
+				else
+					CreateOptions()
+				end
+				Opened = not Opened
+			end)
 
-  local selfObj = {}
-  selfObj.Instance = Dropdown
-  function selfObj:EditContent(NewData)
-    if NewData.Title then
-      Btn.Text = NewData.Title
-    end
-    if NewData.Options then
-      List = NewData.Options
-      ClearOptions()
-      if Opened then CreateOptions() end
-    end
-    if NewData.Callback then callback = NewData.Callback end
-  end
-  return selfObj
-end
+			local selfObj = {}
+			selfObj.Instance = Dropdown
+			function selfObj:EditContent(NewData)
+				if NewData.Title then
+					Btn.Text = NewData.Title
+				end
+				if NewData.Options then
+					List = NewData.Options
+					ClearOptions()
+				end
+				if NewData.Callback then callback = NewData.Callback end
+			end
+			return selfObj
+		end
 
 		TabButton.MouseButton1Click:Connect(function()
 			if CurrentTabContent ~= TabContent then
