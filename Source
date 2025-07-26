@@ -99,9 +99,9 @@ function Library:MakeWindow(WindowData)
 
 		local Tab = {}
 
-		local function MakeBase(SizeY)
+		local function MakeBase(SizeY,SizeScaleX)
 			local Base = Instance.new("Frame", TabContent)
-			Base.Size = UDim2.new(1, -10, 0, SizeY or 40)
+			Base.Size = UDim2.new(SizeScaleX or 1, -10, 0, SizeY or 40)
 			Base.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 			Instance.new("UICorner", Base).CornerRadius = UDim.new(0, 6)
 			return Base
@@ -308,10 +308,10 @@ function Library:MakeWindow(WindowData)
 
 			local function CreateOptions()
 				for _, opt in ipairs(List) do
-					local Opt = MakeBase()
+					local Opt = MakeBase(40,0.9)
 					Opt.Size = UDim2.new(1, -10, 0, 35)
 					local BtnOpt = Instance.new("TextButton", Opt)
-					BtnOpt.Size = UDim2.new(0.9, 0, 1, 0)
+					BtnOpt.Size = UDim2.new(1, 0, 1, 0)
 					BtnOpt.Text = opt
 					BtnOpt.TextScaled = true
 					BtnOpt.Font = Enum.Font.SourceSans
