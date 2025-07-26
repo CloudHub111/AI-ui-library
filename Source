@@ -4,384 +4,221 @@ local TS = game:GetService("TweenService")
 local Library = {}
 
 function Library:MakeWindow(WindowData)
-	local Gui = Instance.new("ScreenGui", gethui())
+	local Gui = Instance.new("ScreenGui", gethui and gethui() or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"))
 	Gui.Name = "MobileUILibrary"
 	Gui.ResetOnSpawn = false
 	Gui.IgnoreGuiInset = true
 
 	local Main = Instance.new("Frame", Gui)
-	Main.Size = WindowData.Size or UDim2.new(0.3, 0, 0.5, 0)
-	Main.Position = UDim2.new(1, -10, 0, 10)
-	Main.AnchorPoint = Vector2.new(1, 0)
-	Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	Main.Active = true
-	Main.Draggable = true
-	Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 8)
+	Main.Size = WindowData.Size or UDim2.new(0.3, 0, 0.35, 0)
+	Main.Position = UDim2.new(0.5, -Main.Size.X.Offset / 2, 0.5, -Main.Size.Y.Offset / 2)
+	Main.AnchorPoint = Vector2.new(0.5, 0.5)
+	Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	Main.BorderSizePixel = 0
 
-	local Title = Instance.new("TextLabel", Main)
-	Title.Size = UDim2.new(1, 0, 0, 30)
-	Title.BackgroundTransparency = 1
-	Title.Text = WindowData.Title or "Window"
-	Title.TextColor3 = Color3.new(1, 1, 1)
-	Title.Font = Enum.Font.SourceSansBold
-	Title.TextScaled = true
+	local TabsHolder = Instance.new("Frame", Main)
+	TabsHolder.Size = UDim2.new(1, 0, 0, 30)
+	TabsHolder.BackgroundTransparency = 1
 
-	local Intro = Instance.new("TextLabel", Main)
-	Intro.Size = UDim2.new(1, 0, 0, 25)
-	Intro.Position = UDim2.new(0, 0, 0, 30)
-	Intro.BackgroundTransparency = 1
-	Intro.TextColor3 = Color3.new(1, 1, 1)
-	Intro.Font = Enum.Font.SourceSansItalic
-	Intro.TextScaled = true
-	Intro.Text = WindowData.IntroText or ""
-	Intro.TextTransparency = 1
-	TS:Create(Intro, TweenInfo.new(2), {TextTransparency = 0}):Play()
+	local TabButtons = Instance.new("ScrollingFrame", TabsHolder)
+	TabButtons.BackgroundTransparency = 1
+	TabButtons.Size = UDim2.new(1, 0, 1, 0)
+	TabButtons.CanvasSize = UDim2.new()
+	TabButtons.ScrollBarThickness = 2
+	TabButtons.AutomaticCanvasSize = Enum.AutomaticSize.X
+	TabButtons.ScrollingDirection = Enum.ScrollingDirection.X
 
-	local TabBar = Instance.new("ScrollingFrame", Main)
-	TabBar.Size = UDim2.new(1, -10, 0, 30)
-	TabBar.Position = UDim2.new(0, 5, 0, 60)
-	TabBar.BackgroundTransparency = 1
-	TabBar.ScrollBarThickness = 4
-	TabBar.CanvasSize = UDim2.new(0, 0, 0, 0)
-	TabBar.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
-	TabBar.ScrollingDirection = Enum.ScrollingDirection.X
+	local TabLayout = Instance.new("UIListLayout", TabButtons)
+	TabLayout.FillDirection = Enum.FillDirection.Horizontal
+	TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	TabLayout.Padding = UDim.new(0, 5)
 
-	local TabBarLayout = Instance.new("UIListLayout", TabBar)
-	TabBarLayout.FillDirection = Enum.FillDirection.Horizontal
-	TabBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	TabBarLayout.Padding = UDim.new(0, 5)
-	TabBarLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-		TabBar.CanvasSize = UDim2.new(0, TabBarLayout.AbsoluteContentSize.X + 5, 0, 0)
-	end)
+	local Content = Instance.new("Frame", Main)
+	Content.Size = UDim2.new(1, 0, 1, -30)
+	Content.Position = UDim2.new(0, 0, 0, 30)
+	Content.BackgroundTransparency = 1
 
-	local TabPages = Instance.new("Frame", Main)
-	TabPages.Size = UDim2.new(1, -10, 1, -95)
-	TabPages.Position = UDim2.new(0, 5, 0, 95)
-	TabPages.BackgroundTransparency = 1
-	TabPages.ClipsDescendants = true
-
-	local LibraryWindow = {}
 	local Tabs = {}
-	local CurrentTabButton
-	local CurrentTabContent
 
-	local function HideAllTabs()
-		for _, t in pairs(Tabs) do
-			t.Content.Visible = false
-			t.Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-		end
-	end
+	function Tabs:MakeTab(TabData)
+		local TabBtn = Instance.new("TextButton", TabButtons)
+		TabBtn.Size = UDim2.new(0, 100, 1, 0)
+		TabBtn.Text = TabData.Name or "Tab"
+		TabBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+		TabBtn.TextColor3 = Color3.new(1, 1, 1)
+		TabBtn.BorderSizePixel = 0
+		TabBtn.TextScaled = true
 
-	function LibraryWindow:MakeTab(TabData)
-		local TabButton = Instance.new("TextButton", TabBar)
-		TabButton.Size = UDim2.new(0, 100, 1, 0)
-		TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-		Instance.new("UICorner", TabButton).CornerRadius = UDim.new(0, 6)
-		TabButton.Text = TabData.Title or "Tab"
-		TabButton.TextColor3 = Color3.new(1, 1, 1)
-		TabButton.Font = Enum.Font.SourceSansBold
-		TabButton.TextScaled = true
-
-		local TabContent = Instance.new("ScrollingFrame", TabPages)
+		local TabContent = Instance.new("ScrollingFrame", Content)
 		TabContent.Size = UDim2.new(1, 0, 1, 0)
-		TabContent.Position = UDim2.new(0, 0, 0, 0)
-		TabContent.BackgroundTransparency = 1
-		TabContent.ScrollBarThickness = 0
-		TabContent.ScrollingDirection = Enum.ScrollingDirection.Y
+		TabContent.CanvasSize = UDim2.new()
+		TabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		TabContent.ScrollBarThickness = 4
 		TabContent.Visible = false
+		TabContent.Name = TabData.Name or "Tab"
 
-		local Layout = Instance.new("UIListLayout", TabContent)
-		Layout.Padding = UDim.new(0, 6)
-		Layout.SortOrder = Enum.SortOrder.LayoutOrder
-		Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-			TabContent.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
+		local TabLayout = Instance.new("UIListLayout", TabContent)
+		TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		TabLayout.Padding = UDim.new(0, 5)
+
+		TabBtn.MouseButton1Click:Connect(function()
+			for _, v in pairs(Content:GetChildren()) do
+				if v:IsA("ScrollingFrame") then
+					v.Visible = false
+				end
+			end
+			TabContent.Visible = true
 		end)
 
 		local Tab = {}
 
-		local function MakeBase(SizeY)
-			local Base = Instance.new("Frame", TabContent)
-			Base.Size = UDim2.new(1, -10, 0, SizeY or 40)
-			Base.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-			Instance.new("UICorner", Base).CornerRadius = UDim.new(0, 6)
-			return Base
-		end
-
-		function Tab:MakeSection(SecData)
-			local Label = MakeBase(25)
-			Label.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-			local Text = Instance.new("TextLabel", Label)
-			Text.Size = UDim2.new(1, -10, 1, 0)
-			Text.Position = UDim2.new(0, 5, 0, 0)
-			Text.Text = SecData.Title or "Section"
-			Text.TextColor3 = Color3.new(1, 1, 1)
-			Text.TextScaled = true
-			Text.Font = Enum.Font.SourceSansBold
-			Text.BackgroundTransparency = 1
-			Text.TextXAlignment = Enum.TextXAlignment.Left
-		end
-
 		function Tab:MakeButton(Data)
-			local Btn = MakeBase()
-			local Text = Instance.new("TextButton", Btn)
-			Text.Size = UDim2.new(1, 0, 1, 0)
-			Text.BackgroundTransparency = 1
-			Text.Text = Data.Title or "Button"
-			Text.TextColor3 = Color3.new(1, 1, 1)
-			Text.TextScaled = true
-			Text.Font = Enum.Font.SourceSans
+			local Btn = Instance.new("TextButton", TabContent)
+			Btn.Size = UDim2.new(1, -10, 0, 35)
+			Btn.Text = Data.Name or "Button"
+			Btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+			Btn.TextColor3 = Color3.new(1, 1, 1)
+			Btn.BorderSizePixel = 0
+			Btn.TextScaled = true
+			Btn.LayoutOrder = Data.Order or 0
 
-			local callback = Data.Callback
-
-			Text.MouseButton1Click:Connect(function()
-				pcall(callback, true)
+			Btn.MouseButton1Click:Connect(function()
+				if Data.Callback then
+					pcall(Data.Callback)
+				end
 			end)
 
 			local selfObj = {}
 			selfObj.Instance = Btn
 			function selfObj:EditContent(NewData)
-				if NewData.Title then
-					Text.Text = NewData.Title
-				end
+				if NewData.Name then Btn.Text = NewData.Name end
 				if NewData.Callback then
-					callback = NewData.Callback
+					Btn.MouseButton1Click:Connect(function()
+						pcall(NewData.Callback)
+					end)
 				end
 			end
 			return selfObj
 		end
 
 		function Tab:MakeToggle(Data)
-			local Btn = MakeBase()
-			local State = false
-			local Text = Instance.new("TextButton", Btn)
-			Text.Size = UDim2.new(1, 0, 1, 0)
-			Text.BackgroundTransparency = 1
-			Text.Text = "[ OFF ] " .. (Data.Title or "Toggle")
-			Text.TextColor3 = Color3.new(1, 1, 1)
-			Text.TextScaled = true
-			Text.Font = Enum.Font.SourceSans
+			local Btn = Instance.new("TextButton", TabContent)
+			Btn.Size = UDim2.new(1, -10, 0, 35)
+			Btn.Text = (Data.State and "[✔] " or "[ ] ") .. (Data.Name or "Toggle")
+			Btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+			Btn.TextColor3 = Color3.new(1, 1, 1)
+			Btn.BorderSizePixel = 0
+			Btn.TextScaled = true
 
-			local callback = Data.Callback
+			local State = Data.State or false
 
-			Text.MouseButton1Click:Connect(function()
+			Btn.MouseButton1Click:Connect(function()
 				State = not State
-				Text.Text = (State and "[ ON  ] " or "[ OFF ] ") .. (Data.Title or "Toggle")
-				pcall(callback, State)
+				Btn.Text = (State and "[✔] " or "[ ] ") .. (Data.Name or "Toggle")
+				if Data.Callback then
+					pcall(Data.Callback, State)
+				end
 			end)
 
 			local selfObj = {}
 			selfObj.Instance = Btn
 			function selfObj:EditContent(NewData)
-				if NewData.Title then
-					Text.Text = (State and "[ ON  ] " or "[ OFF ] ") .. NewData.Title
+				if NewData.Name then
+					Btn.Text = (State and "[✔] " or "[ ] ") .. NewData.Name
 				end
 				if NewData.Callback then
-					callback = NewData.Callback
-				end
-			end
-			selfObj.GetState = function() return State end
-			selfObj.SetState = function(val)
-				State = val and true or false
-				Text.Text = (State and "[ ON  ] " or "[ OFF ] ") .. (Data.Title or "Toggle")
-			end
-			return selfObj
-		end
-
-		function Tab:MakeTextbox(Data)
-			local Box = MakeBase()
-			local TextBox = Instance.new("TextBox", Box)
-			TextBox.Size = UDim2.new(1, -10, 1, 0)
-			TextBox.Position = UDim2.new(0, 5, 0, 0)
-			TextBox.PlaceholderText = Data.Title or "Type..."
-			TextBox.Text = Data.Text or ""
-			TextBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-			TextBox.TextColor3 = Color3.new(1, 1, 1)
-			TextBox.TextScaled = true
-			TextBox.Font = Enum.Font.SourceSans
-			Instance.new("UICorner", TextBox).CornerRadius = UDim.new(0, 4)
-
-			local callback = Data.Callback
-
-			TextBox.FocusLost:Connect(function(enter)
-				if enter then
-					pcall(callback, TextBox.Text)
-				end
-			end)
-
-			local selfObj = {}
-			selfObj.Instance = Box
-			function selfObj:EditContent(NewData)
-				if NewData.Title then
-					TextBox.PlaceholderText = NewData.Title
-				end
-				if NewData.Text then
-					TextBox.Text = NewData.Text
-				end
-				if NewData.Callback then
-					callback = NewData.Callback
+					Btn.MouseButton1Click:Connect(function()
+						State = not State
+						Btn.Text = (State and "[✔] " or "[ ] ") .. (NewData.Name or "Toggle")
+						pcall(NewData.Callback, State)
+					end)
 				end
 			end
 			return selfObj
 		end
 
-		function Tab:MakeSlider(Data)
-			local Min, Max = Data.Min or 0, Data.Max or 100
-			local Frame = MakeBase(45)
+		function Tab:MakeDropdown(Data)
+			local Holder = Instance.new("Frame", TabContent)
+			Holder.Size = UDim2.new(1, -10, 0, 35)
+			Holder.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+			Holder.BorderSizePixel = 0
 
-			local Label = Instance.new("TextLabel", Frame)
-			Label.Size = UDim2.new(1, -10, 0.4, 0)
-			Label.Position = UDim2.new(0, 5, 0, 0)
-			Label.Text = (Data.Title or "Slider") .. ": " .. Min
-			Label.TextColor3 = Color3.new(1, 1, 1)
+			local Label = Instance.new("TextButton", Holder)
+			Label.Size = UDim2.new(1, 0, 0, 35)
 			Label.BackgroundTransparency = 1
-			Label.Font = Enum.Font.SourceSans
+			Label.TextColor3 = Color3.new(1, 1, 1)
 			Label.TextScaled = true
+			Label.Text = Data.Name or "Dropdown"
 
-			local Bar = Instance.new("Frame", Frame)
-			Bar.Size = UDim2.new(1, -10, 0.4, 0)
-			Bar.Position = UDim2.new(0, 5, 0.5, 0)
-			Bar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-			Instance.new("UICorner", Bar).CornerRadius = UDim.new(0, 5)
+			local List = Instance.new("Frame", Holder)
+			List.BackgroundTransparency = 1
+			List.Position = UDim2.new(0, 0, 0, 35)
+			List.Size = UDim2.new(1, 0, 0, 0)
+			List.ClipsDescendants = true
 
-			local Fill = Instance.new("Frame", Bar)
-			Fill.Size = UDim2.new(0, 0, 1, 0)
-			Fill.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
-			Instance.new("UICorner", Fill)
+			local ListLayout = Instance.new("UIListLayout", List)
+			ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			ListLayout.Padding = UDim.new(0, 2)
 
-			local callback = Data.Callback
-			local function Update(pos)
-				local pct = math.clamp((pos.X - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X, 0, 1)
-				Fill.Size = UDim2.new(pct, 0, 1, 0)
-				local Value = math.floor(Min + (Max - Min) * pct)
-				Label.Text = (Data.Title or "Slider") .. ": " .. Value
-				pcall(callback, Value)
+			local Open = false
+
+			local function Rebuild()
+				for _, v in ipairs(List:GetChildren()) do
+					if v:IsA("TextButton") then v:Destroy() end
+				end
+				for _, Option in ipairs(Data.Options or {}) do
+					local Btn = Instance.new("TextButton", List)
+					Btn.Size = UDim2.new(1, 0, 0, 30)
+					Btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+					Btn.BorderSizePixel = 0
+					Btn.TextColor3 = Color3.new(1, 1, 1)
+					Btn.TextScaled = true
+					Btn.Text = tostring(Option)
+
+					Btn.MouseButton1Click:Connect(function()
+						if Data.Callback then
+							pcall(Data.Callback, Option)
+						end
+						Open = false
+						TS:Create(List, TweenInfo.new(0.25), {Size = UDim2.new(1, 0, 0, 0)}):Play()
+						TS:Create(Holder, TweenInfo.new(0.25), {Size = UDim2.new(1, -10, 0, 35)}):Play()
+					end)
+				end
 			end
 
-			Bar.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-					local Move, End
-					Move = UIS.InputChanged:Connect(function(i)
-						if i.Position then Update(i.Position) end
-					end)
-					End = UIS.InputEnded:Connect(function(i)
-						if i.UserInputType == input.UserInputType then
-							Move:Disconnect()
-							End:Disconnect()
-						end
-					end)
+			Rebuild()
+
+			Label.MouseButton1Click:Connect(function()
+				Open = not Open
+				if Open then
+					local TargetSize = #List:GetChildren() * 32
+					TS:Create(List, TweenInfo.new(0.25), {Size = UDim2.new(1, 0, 0, TargetSize)}):Play()
+					TS:Create(Holder, TweenInfo.new(0.25), {Size = UDim2.new(1, -10, 0, 35 + TargetSize)}):Play()
+				else
+					TS:Create(List, TweenInfo.new(0.25), {Size = UDim2.new(1, 0, 0, 0)}):Play()
+					TS:Create(Holder, TweenInfo.new(0.25), {Size = UDim2.new(1, -10, 0, 35)}):Play()
 				end
 			end)
 
 			local selfObj = {}
-			selfObj.Instance = Frame
+			selfObj.Instance = Holder
 			function selfObj:EditContent(NewData)
-				if NewData.Title then
-					Label.Text = NewData.Title .. ": " .. Min
+				if NewData.Name then Label.Text = NewData.Name end
+				if NewData.Options then
+					Data.Options = NewData.Options
+					Rebuild()
 				end
-				if NewData.Min then Min = NewData.Min end
-				if NewData.Max then Max = NewData.Max end
-				if NewData.Callback then callback = NewData.Callback end
+				if NewData.Callback then
+					Data.Callback = NewData.Callback
+				end
 			end
 			return selfObj
 		end
 
-function Tab:MakeDropdown(Config)
-	local Title = Config.Title or "Dropdown"
-	local Options = Config.Options or {}
-	local Callback = Config.Callback or function() end
-
-	local Dropdown = MakeBase()
-	Dropdown.Size = UDim2.new(1, -10, 0, 35)
-	Dropdown.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	Dropdown.Parent = TabContent
-	Dropdown.Name = "Dropdown"
-
-	local Btn = Instance.new("TextButton", Dropdown)
-	Btn.Size = UDim2.new(1, 0, 1, 0)
-	Btn.Text = Title
-	Btn.Font = Enum.Font.GothamSemibold
-	Btn.TextColor3 = Color3.new(1, 1, 1)
-	Btn.BackgroundTransparency = 1
-	Btn.TextScaled = true
-
-	local List = Instance.new("Frame")
-	List.Name = "OptionList"
-	List.Size = UDim2.new(1, -10, 0, 0)
-	List.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-	List.Position = UDim2.new(0, 5, 1, 0)
-	List.Visible = false
-	List.ClipsDescendants = true
-	List.Parent = Dropdown
-
-	local UIListLayout = Instance.new("UIListLayout", List)
-	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	UIListLayout.Padding = UDim.new(0, 2)
-
-	local function ToggleList()
-		List.Visible = not List.Visible
-		if List.Visible then
-			local Count = #Options
-			List.Size = UDim2.new(1, -10, 0, Count * 37)
-		else
-			List.Size = UDim2.new(1, -10, 0, 0)
-		end
-	end
-
-	Btn.MouseButton1Click:Connect(ToggleList)
-
-	for _, Option in ipairs(Options) do
-		local Opt = MakeBase()
-		Opt.Size = UDim2.new(0.9, 0, 0, 35)
-		Opt.Position = UDim2.new(0.025, 0, 0, 0)
-		Opt.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-		Opt.Parent = List
-
-		local BtnOpt = Instance.new("TextButton", Opt)
-		BtnOpt.Size = UDim2.new(1, 0, 1, 0)
-		BtnOpt.Text = tostring(Option)
-		BtnOpt.TextColor3 = Color3.new(1, 1, 1)
-		BtnOpt.BackgroundTransparency = 1
-		BtnOpt.Font = Enum.Font.Gotham
-		BtnOpt.TextScaled = true
-
-		BtnOpt.MouseButton1Click:Connect(function()
-			Callback(Option)
-			ToggleList()
-		end)
-
-		BtnOpt.MouseEnter:Connect(function()
-			Opt.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-		end)
-		BtnOpt.MouseLeave:Connect(function()
-			Opt.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-		end)
-	end
-
-	return Dropdown
-end
-
-		TabButton.MouseButton1Click:Connect(function()
-			if CurrentTabContent ~= TabContent then
-				HideAllTabs()
-				TabContent.Visible = true
-				TabButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-				CurrentTabContent = TabContent
-				CurrentTabButton = TabButton
-			end
-		end)
-
-		if not CurrentTabContent then
-			CurrentTabContent = TabContent
-			CurrentTabButton = TabButton
-			TabContent.Visible = true
-			TabButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-		end
-
-		Tabs[#Tabs + 1] = {Content = TabContent, Button = TabButton}
 		return Tab
 	end
 
-	return LibraryWindow
+	return Tabs
 end
 
 return Library
