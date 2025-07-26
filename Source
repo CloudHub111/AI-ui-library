@@ -86,7 +86,7 @@ function Library:MakeWindow(WindowData)
 		TabContent.Size = UDim2.new(1, 0, 1, 0)
 		TabContent.Position = UDim2.new(0, 0, 0, 0)
 		TabContent.BackgroundTransparency = 1
-		TabContent.ScrollBarThickness = 6
+		TabContent.ScrollBarThickness = 0
 		TabContent.ScrollingDirection = Enum.ScrollingDirection.Y
 		TabContent.Visible = false
 
@@ -285,71 +285,80 @@ function Library:MakeWindow(WindowData)
 			return selfObj
 		end
 
-		function Tab:MakeDropdown(Data)
-			local List = Data.Options or {}
-			local Dropdown = MakeBase()
-			local Btn = Instance.new("TextButton", Dropdown)
-			Btn.Size = UDim2.new(1, 0, 1, 0)
-			Btn.BackgroundTransparency = 1
-			Btn.Text = Data.Title or "Dropdown"
-			Btn.TextColor3 = Color3.new(1, 1, 1)
-			Btn.TextScaled = true
-			Btn.Font = Enum.Font.SourceSans
+function Tab:MakeDropdown(Config)
+	local Title = Config.Title or "Dropdown"
+	local Options = Config.Options or {}
+	local Callback = Config.Callback or function() end
 
-			local Opened = false
-			local OptionFrames = {}
+	local Dropdown = MakeBase()
+	Dropdown.Size = UDim2.new(1, -10, 0, 35)
+	Dropdown.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	Dropdown.Parent = TabContent
+	Dropdown.Name = "Dropdown"
 
-			local callback = Data.Callback
+	local Btn = Instance.new("TextButton", Dropdown)
+	Btn.Size = UDim2.new(1, 0, 1, 0)
+	Btn.Text = Title
+	Btn.Font = Enum.Font.GothamSemibold
+	Btn.TextColor3 = Color3.new(1, 1, 1)
+	Btn.BackgroundTransparency = 1
+	Btn.TextScaled = true
 
-			local function ClearOptions()
-				for _, f in pairs(OptionFrames) do f:Destroy() end
-				OptionFrames = {}
-			end
+	local List = Instance.new("Frame")
+	List.Name = "OptionList"
+	List.Size = UDim2.new(1, -10, 0, 0)
+	List.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	List.Position = UDim2.new(0, 5, 1, 0)
+	List.Visible = false
+	List.ClipsDescendants = true
+	List.Parent = Dropdown
 
-			local function CreateOptions()
-				for _, opt in ipairs(List) do
-					local Opt = MakeBase()
-					Opt.Size = UDim2.new(1, -10, 0, 35)
-					local BtnOpt = Instance.new("TextButton", Opt)
-					BtnOpt.Size = UDim2.new(1, 0, 1, 0)
-					BtnOpt.Text = opt
-					BtnOpt.TextScaled = true
-					BtnOpt.Font = Enum.Font.SourceSans
-					BtnOpt.BackgroundTransparency = 1
-					BtnOpt.TextColor3 = Color3.new(1, 1, 1)
-					BtnOpt.MouseButton1Click:Connect(function()
-						Btn.Text = opt
-						ClearOptions()
-						Opened = false
-						pcall(callback, opt)
-					end)
-					table.insert(OptionFrames, Opt)
-				end
-			end
+	local UIListLayout = Instance.new("UIListLayout", List)
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	UIListLayout.Padding = UDim.new(0, 2)
 
-			Btn.MouseButton1Click:Connect(function()
-				if Opened then
-					ClearOptions()
-				else
-					CreateOptions()
-				end
-				Opened = not Opened
-			end)
-
-			local selfObj = {}
-			selfObj.Instance = Dropdown
-			function selfObj:EditContent(NewData)
-				if NewData.Title then
-					Btn.Text = NewData.Title
-				end
-				if NewData.Options then
-					List = NewData.Options
-					ClearOptions()
-				end
-				if NewData.Callback then callback = NewData.Callback end
-			end
-			return selfObj
+	local function ToggleList()
+		List.Visible = not List.Visible
+		if List.Visible then
+			local Count = #Options
+			List.Size = UDim2.new(1, -10, 0, Count * 37)
+		else
+			List.Size = UDim2.new(1, -10, 0, 0)
 		end
+	end
+
+	Btn.MouseButton1Click:Connect(ToggleList)
+
+	for _, Option in ipairs(Options) do
+		local Opt = MakeBase()
+		Opt.Size = UDim2.new(0.9, 0, 0, 35)
+		Opt.Position = UDim2.new(0.025, 0, 0, 0)
+		Opt.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+		Opt.Parent = List
+
+		local BtnOpt = Instance.new("TextButton", Opt)
+		BtnOpt.Size = UDim2.new(1, 0, 1, 0)
+		BtnOpt.Text = tostring(Option)
+		BtnOpt.TextColor3 = Color3.new(1, 1, 1)
+		BtnOpt.BackgroundTransparency = 1
+		BtnOpt.Font = Enum.Font.Gotham
+		BtnOpt.TextScaled = true
+
+		BtnOpt.MouseButton1Click:Connect(function()
+			Callback(Option)
+			ToggleList()
+		end)
+
+		BtnOpt.MouseEnter:Connect(function()
+			Opt.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+		end)
+		BtnOpt.MouseLeave:Connect(function()
+			Opt.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+		end)
+	end
+
+	return Dropdown
+end
 
 		TabButton.MouseButton1Click:Connect(function()
 			if CurrentTabContent ~= TabContent then
