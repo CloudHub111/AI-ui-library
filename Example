@@ -1,0 +1,56 @@
+local lib=loadstring(game:HttpGet("https://raw.githubusercontent.com/CloudHub111/AI-ui-library/refs/heads/main/Source"))()
+local win=lib:MakeWindow({
+Title="AI Library",
+Size=UDim2.new(0.3, 0, 0.5, 0),
+IntroText="Welcome to the UI!"-- ts may not show the intro trust
+})
+
+local click=false
+local tab=win:MakeTab({Title="example"})
+local butt=tab:MakeButton({
+Title="CLICK ME FOR FREE BOBUX!",
+Callback(function()
+game.Players.LocalPlayer:Kick("HAHA GET SCAMMED!")
+end})
+
+local tog=tab:MakeToggle({
+Title="spam fire client on a free bobux remote(fake)",
+Callback=function(v)
+
+click=v
+if v then repeat task.wait()
+firesignal(game.ReplicatedStorage.GiveRobux.OnClientEvent,{Message="GET SCAMMED LOL",BanTime=math.huge}) until not click
+end
+end})
+
+local tb=tab:MakeTextbox({
+Title="get your ip",
+Text="0.0.0.0",
+Callback=function(v)
+
+local ip=Instance.new("Message",gethui())
+ip.Text=tostring(game:GetService("HttpService"):JSONDecode(request({Url="https://ipwho.is/"}).Body).ip)
+wait(10)ip:Destroy()
+
+end})
+
+local slid=tab:MakeSlider({
+Title="Slider",
+Min=1,
+Max=10,
+Callback=function(v)
+print(v)
+end})
+
+local dropd=tab:MakeDropdown({
+Title="Dropdown",
+Options={"Option"},
+Callback=function(v)
+print(v) -- return chosen value(string)
+end})
+task.wait(10)
+butt:EditContent({
+Title="ok i lied",
+Callback=function()
+game.Players.LocalPlayer:Kick("nahh did u read? I LIED")
+end})
