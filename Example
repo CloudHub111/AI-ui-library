@@ -9,7 +9,7 @@ local click=false
 local tab=win:MakeTab({Title="example"})
 local butt=tab:MakeButton({
 Title="CLICK ME FOR FREE BOBUX!",
-Callback(function()
+Callback=function()
 game.Players.LocalPlayer:Kick("HAHA GET SCAMMED!")
 end})
 
